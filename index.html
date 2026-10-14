@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#2f5d50">
+<title>Wes Influencer Takip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky top bar with brand + summary chips, filter row, then a record table (cards on phones); a side sheet holds the add/edit form. */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --surface-2:#eef0ec; --line:#dcdfd8;
+  --fg:#1b1f1c; --muted:#5f665f; --accent:#2f5d50; --accent-fg:#ffffff; --accent-soft:#dfeae5;
+  --grey-bg:#eceeea; --grey-fg:#4f5650;
+  --amber-bg:#fbefd6; --amber-fg:#8a5a00;
+  --blue-bg:#dfe9f7; --blue-fg:#24508f;
+  --green-bg:#dcefe0; --green-fg:#1f6a35;
+  --red-bg:#f8e0dd; --red-fg:#9b2c22;
+  --shadow:0 10px 40px rgba(20,30,25,.18);
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121513; --surface:#1a1e1b; --surface-2:#222724; --line:#2f3531;
+  --fg:#e6e9e5; --muted:#9aa29b; --accent:#7fbfa9; --accent-fg:#0f1a16; --accent-soft:#1f3029;
+  --grey-bg:#262b28; --grey-fg:#b4bcb5;
+  --amber-bg:#3a2e14; --amber-fg:#f0c66b;
+  --blue-bg:#1b2a40; --blue-fg:#9cc0f2;
+  --green-bg:#173222; --green-fg:#8fd6a4;
+  --red-bg:#3a1c19; --red-fg:#f2a49b;
+  --shadow:0 10px 40px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121513; --surface:#1a1e1b; --surface-2:#222724; --line:#2f3531;
+  --fg:#e6e9e5; --muted:#9aa29b; --accent:#7fbfa9; --accent-fg:#0f1a16; --accent-soft:#1f3029;
+  --grey-bg:#262b28; --grey-fg:#b4bcb5;
+  --amber-bg:#3a2e14; --amber-fg:#f0c66b;
+  --blue-bg:#1b2a40; --blue-fg:#9cc0f2;
+  --green-bg:#173222; --green-fg:#8fd6a4;
+  --red-bg:#3a1c19; --red-fg:#f2a49b;
+  --shadow:0 10px 40px rgba(0,0,0,.5); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:0 60px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:16px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
+.brand{display:flex;flex-direction:column;gap:2px;margin-right:auto;min-width:0}
+.brand small{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.brand h1{margin:0;font-family:var(--f-display);font-weight:700;font-size:24px;letter-spacing:-.01em;text-wrap:balance}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--red-fg);border-color:var(--red-bg)}
+.btn.danger.armed{background:var(--red-fg);color:var(--surface);border-color:var(--red-fg)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left}
+.stat:hover{border-color:var(--accent)}
+.stat.on{border-color:var(--accent);background:var(--accent-soft)}
+.stat span{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.stat b{font-family:var(--f-mono);font-size:24px;font-weight:500;font-variant-numeric:tabular-nums}
+
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center}
+.filters input[type=search]{flex:1 1 260px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.filters select{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);flex:0 1 auto;min-width:0}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+.count{font-size:13px;color:var(--muted);margin-left:auto}
+
+.notice{margin-top:16px;padding:10px 14px;border-radius:8px;background:var(--amber-bg);color:var(--amber-fg);font-size:14px}
+
+.tablebox{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:980px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:11px 12px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+.name{font-weight:600;font-size:15px}
+.sub{color:var(--muted);font-size:13px}
+.mono{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.addr{max-width:220px;white-space:pre-line;color:var(--muted);font-size:13px}
+.prod{max-width:220px;white-space:pre-line}
+.body-stats{display:flex;gap:6px;flex-wrap:wrap}
+.body-stats span{background:var(--surface-2);border-radius:6px;padding:2px 7px;font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+
+.pill{appearance:none;-webkit-appearance:none;border:none;border-radius:999px;padding:5px 26px 5px 11px;font-size:13px;font-weight:600;cursor:pointer;background-repeat:no-repeat;background-position:right 9px center;background-size:9px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.6'/%3E%3C/svg%3E")}
+.pill[disabled]{cursor:default;padding-right:11px;background-image:none;opacity:1}
+.t-grey{background-color:var(--grey-bg);color:var(--grey-fg)}
+.t-amber{background-color:var(--amber-bg);color:var(--amber-fg)}
+.t-blue{background-color:var(--blue-bg);color:var(--blue-fg)}
+.t-green{background-color:var(--green-bg);color:var(--green-fg)}
+.t-red{background-color:var(--red-bg);color:var(--red-fg)}
+.tag{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+.stack{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+
+.rowbtn{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:6px 10px;font-size:13px;font-weight:600;cursor:pointer}
+.rowbtn:hover{background:var(--surface-2)}
+.copy{border:none;background:none;padding:0 0 0 4px;cursor:pointer;color:var(--muted);font-size:12px;text-decoration:underline}
+
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+.empty h2{font-family:var(--f-display);color:var(--fg);font-size:20px;margin:0 0 6px}
+
+/* cards on phones */
+.cards{display:none;flex-direction:column;gap:10px;margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card .row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:13px}
+.card dt{color:var(--muted)}
+.card dd{margin:0;white-space:pre-line;min-width:0;overflow-wrap:anywhere}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,15,12,.45);z-index:20}
+.sheet{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:21;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(16px + env(safe-area-inset-top,0px)) 20px 16px;border-bottom:1px solid var(--line)}
+.sheet-head h2{margin:0;font-family:var(--f-display);font-size:20px}
+.sheet-body{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:20px}
+.sheet-foot{display:flex;gap:10px;justify-content:space-between;padding:14px 20px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);flex-wrap:wrap}
+fieldset{border:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+legend{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:0;margin-bottom:10px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f.full{grid-column:1/-1}
+.f label{font-size:13px;font-weight:600}
+.f label i{font-style:normal;color:var(--red-fg)}
+.f input,.f select,.f textarea{padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);width:100%}
+.f textarea{resize:vertical;min-height:72px}
+.f3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;background:var(--bg)}
+.seg input:checked + label{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.seg input:focus-visible + label{outline:2px solid var(--accent);outline-offset:2px}
+.err{color:var(--red-fg);font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
+
+@media (max-width:860px){
+  .summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tablebox{display:none}
+  .cards{display:flex}
+}
+@media (max-width:520px){
+  .wrap,.top-in{padding-inline:16px}
+  .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  fieldset,.f3{grid-template-columns:1fr}
+  .count{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(30px);opacity:.6}}}
+</style>
+</head>
+<body>
+<style>
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+.gate{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding-inline:16px;padding-block:40px}
+.gate form{width:min(380px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 22px;display:flex;flex-direction:column;gap:14px}
+.gate small{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.gate h1{margin:0;font-family:var(--f-display);font-size:26px}
+.gate p{margin:0;color:var(--muted);font-size:14px}
+.gate input{padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:16px;width:100%}
+.gate .btn{justify-content:center;padding:12px}
+.sync{font-size:12px;color:var(--muted)}
+</style>
+
+<div class="gate" id="gate" hidden>
+  <form id="gateForm" novalidate>
+    <small>Wes</small>
+    <h1>Influencer Takip</h1>
+    <p>Ekip şifresini girin. Bu cihaz şifreyi hatırlar, bir daha sorulmaz.</p>
+    <input id="gatePass" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ekip şifresi" aria-label="Ekip şifresi">
+    <label class="chk" for="gateShow"><input type="checkbox" id="gateShow"> Şifreyi göster</label>
+    <div class="err" id="gateErr" hidden></div>
+    <button class="btn primary" type="submit" id="gateBtn">Giriş</button>
+  </form>
+</div>
+
+<div id="app" hidden>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><small>Wes</small><h1>Influencer Takip</h1></div>
+    <span class="sync" id="sync"></span>
+    <button class="btn" id="refreshBtn" type="button">Yenile</button>
+    <button class="btn primary" id="addBtn" type="button">+ Yeni influencer</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="summary" id="summary"></div>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="İsim, telefon, ürün veya adres ara…" aria-label="Ara">
+    <select id="fKargo" aria-label="Kargo durumu filtresi"></select>
+    <select id="fVideo" aria-label="Video durumu filtresi"></select>
+    <select id="fDuzenli" aria-label="Düzenli çalışma filtresi"></select>
+    <label class="chk" for="fArsiv"><input type="checkbox" id="fArsiv"> Arşivdekiler</label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <div class="tablebox">
+    <table>
+      <thead><tr>
+        <th>Influencer</th><th>Telefon</th><th>Adres</th><th>Boy / Kilo / Beden</th><th>Gönderilen ürünler</th><th>Kargo</th><th>Video</th><th>Düzenli</th><th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="emptyT"></div>
+  </div>
+  <div class="cards" id="cards"></div>
+</main>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-head"><h2 id="sheetTitle">Yeni influencer</h2><button class="btn" type="button" id="closeBtn">Kapat</button></div>
+  <form id="form" class="sheet-body" novalidate>
+    <div>
+      <legend>Kişi bilgileri</legend>
+      <fieldset>
+        <div class="f"><label for="i-ad">Ad <i>*</i></label><input id="i-ad" name="ad" autocomplete="off" required></div>
+        <div class="f"><label for="i-soyad">Soyad</label><input id="i-soyad" name="soyad" autocomplete="off"></div>
+        <div class="f"><label for="i-telefon">Telefon</label><input id="i-telefon" name="telefon" type="tel" placeholder="05xx xxx xx xx" autocomplete="off"></div>
+        <div class="f"><label for="i-instagram">Instagram / hesap</label><input id="i-instagram" name="instagram" placeholder="@kullaniciadi" autocomplete="off"></div>
+        <div class="f full"><label for="i-adres">Adres</label><textarea id="i-adres" name="adres" placeholder="Mahalle, sokak, no, ilçe / il"></textarea></div>
+      </fieldset>
+    </div>
+    <div>
+      <legend>Manken ölçüleri</legend>
+      <fieldset class="f3">
+        <div class="f"><label for="i-boy">Boy (cm)</label><input id="i-boy" name="boy" inputmode="numeric" placeholder="170"></div>
+        <div class="f"><label for="i-kilo">Kilo (kg)</label><input id="i-kilo" name="kilo" inputmode="numeric" placeholder="55"></div>
+        <div class="f"><label for="i-beden">Beden</label><select id="i-beden" name="beden"></select></div>
+      </fieldset>
+    </div>
+    <div>
+      <legend>Gönderim</legend>
+      <fieldset>
+        <div class="f full"><label for="i-urunler">Gönderilen ürünler</label><textarea id="i-urunler" name="urunler" placeholder="Her satıra bir ürün: Siyah keten gömlek – M"></textarea></div>
+        <div class="f full"><label>Kargo durumu</label><div class="seg" id="seg-kargo"></div></div>
+        <div class="f"><label for="i-firma">Kargo firması</label><input id="i-firma" name="firma" placeholder="Yurtiçi, Aras…" autocomplete="off"></div>
+        <div class="f"><label for="i-takip">Takip no</label><input id="i-takip" name="takip" autocomplete="off"></div>
+      </fieldset>
+    </div>
+    <div>
+      <legend>İçerik ve işbirliği</legend>
+      <fieldset>
+        <div class="f full"><label>Video durumu</label><div class="seg" id="seg-video"></div></div>
+        <div class="f full"><label>Düzenli çalışılacak mı?</label><div class="seg" id="seg-duzenli"></div></div>
+        <div class="f full"><label for="i-notlar">Notlar</label><textarea id="i-notlar" name="notlar" placeholder="Anlaşma detayı, video teslim tarihi, link…"></textarea></div>
+      </fieldset>
+    </div>
+    <div class="err" id="formErr" hidden></div>
+  </form>
+  <div class="sheet-foot">
+    <button class="btn" type="button" id="arcBtn" hidden>Arşivle</button>
+    <span style="flex:1"></span>
+    <button class="btn" type="button" id="cancelBtn">Vazgeç</button>
+    <button class="btn primary" type="submit" form="form" id="saveBtn">Kaydet</button>
+  </div>
+</aside>
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script>
+const API = (window.WES_CONFIG && window.WES_CONFIG.apiUrl) || "";
+const KEY_STORE = "wes-influencer-key";
+
+const KARGO = [
+  {v:"Gönderilmedi", c:"t-grey"}, {v:"Hazırlanıyor", c:"t-amber"}, {v:"Yolda", c:"t-blue"},
+  {v:"Teslim edildi", c:"t-green"}, {v:"İade / sorun", c:"t-red"},
+];
+const VIDEO = [
+  {v:"Video çekilmedi", c:"t-grey"}, {v:"Çekilecek", c:"t-amber"}, {v:"Video iletildi", c:"t-green"}, {v:"Yayınlandı", c:"t-blue"},
+];
+const DUZENLI = [
+  {v:"Değerlendiriliyor", c:"t-grey"}, {v:"Evet, düzenli", c:"t-green"}, {v:"Hayır", c:"t-red"},
+];
+const BEDEN = ["","XS","S","M","L","XL","XXL","3XL","34","36","38","40","42","44","46"];
+const TEXT_FIELDS = ["ad","soyad","telefon","instagram","adres","boy","kilo","beden","urunler","firma","takip","notlar"];
+
+const $ = id => document.getElementById(id);
+const find = (list,v) => list.find(o=>o.v===v) || list[0];
+let rows = [], key = "", editingId = null, statFilter = null, lastSync = 0, busy = false;
+
+function getKey(){ try{ return localStorage.getItem(KEY_STORE)||""; }catch(e){ return ""; } }
+function setKey(k){ try{ k?localStorage.setItem(KEY_STORE,k):localStorage.removeItem(KEY_STORE); }catch(e){} }
+
+// ---------- API (Google E-Tablo) ----------
+async function apiList(k){
+  const r = await fetch(API + "?key=" + encodeURIComponent(k) + "&t=" + Date.now());
+  return r.json();
+}
+async function apiSave(item, islem){
+  // text/plain: Google Apps Script ön kontrol (CORS preflight) istemeden kabul eder
+  const r = await fetch(API, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({key, action:"save", item, islem})});
+  const j = await r.json();
+  if(!j.ok){ if(j.error==="sifre"){ logout(); } throw new Error(j.error||"hata"); }
+  const i = rows.findIndex(x=>x.id===j.item.id);
+  if(i>=0) rows[i]=j.item; else rows.unshift(j.item);
+  sortRows(); render();
+  return j.item;
+}
+function sortRows(){ rows.sort((a,b)=>(+b.updatedAt||0)-(+a.updatedAt||0)); }
+
+async function load(silent){
+  if(busy) return;
+  busy = true;
+  if(!silent) $("sync").textContent = "Yükleniyor…";
+  try{
+    const j = await apiList(key);
+    if(!j.ok){ if(j.error==="sifre"){ logout("Şifre değişmiş. Yeni şifreyi girin."); return; } throw new Error(j.error); }
+    rows = j.items; sortRows(); lastSync = Date.now();
+    $("notice").hidden = true;
+    render();
+  }catch(e){
+    $("notice").hidden=false; $("notice").textContent="Kayıtlar yüklenemedi. İnternet bağlantınızı kontrol edip “Yenile”ye basın.";
+  }finally{ busy=false; showSync(); }
+}
+function showSync(){
+  if(!lastSync){ $("sync").textContent=""; return; }
+  const d = new Date(lastSync);
+  $("sync").textContent = "Güncellendi " + d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+}
+
+// ---------- gate ----------
+function logout(msg){
+  setKey(""); key="";
+  $("app").hidden=true; $("gate").hidden=false;
+  $("gateErr").hidden=!msg; $("gateErr").textContent=msg||"";
+}
+$("gateForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  let k = $("gatePass").value.trim();
+  if(!k) return;
+  $("gateBtn").disabled=true; $("gateBtn").textContent="Kontrol ediliyor…"; $("gateErr").hidden=true;
+  try{
+    let j = await apiList(k);
+    // Telefon klavyesi ilk harfi büyük yazarsa küçük harfle bir kez daha dene
+    if(!j.ok && j.error==="sifre" && k!==k.toLocaleLowerCase("tr")){ const k2=k.toLocaleLowerCase("tr"); const j2=await apiList(k2); if(j2.ok){ j=j2; k=k2; } }
+    if(!j.ok){ $("gateErr").textContent = j.error==="sifre" ? "Şifre yanlış. Tekrar deneyin." : "Sistem henüz hazır değil."; $("gateErr").hidden=false; return; }
+    key=k; setKey(k); rows=j.items; sortRows(); lastSync=Date.now();
+    $("gate").hidden=true; $("app").hidden=false; render(); showSync();
+  }catch(err){ $("gateErr").textContent="Bağlantı kurulamadı. İnterneti kontrol edin."; $("gateErr").hidden=false; }
+  finally{ $("gateBtn").disabled=false; $("gateBtn").textContent="Giriş"; }
+});
+
+$("gateShow").addEventListener("change",e=>{ $("gatePass").type = e.target.checked ? "text" : "password"; });
+// ---------- static UI ----------
+function fillSelect(sel, list, allLabel){ sel.innerHTML=""; sel.append(new Option(allLabel,"")); list.forEach(o=>sel.append(new Option(o.v,o.v))); }
+fillSelect($("fKargo"), KARGO, "Tüm kargo durumları");
+fillSelect($("fVideo"), VIDEO, "Tüm video durumları");
+fillSelect($("fDuzenli"), DUZENLI, "Düzenli: hepsi");
+BEDEN.forEach(b=>$("i-beden").append(new Option(b||"Seçin", b)));
+function fillSeg(box, name, list){
+  box.innerHTML="";
+  list.forEach((o,i)=>{
+    const id=`seg-${name}-${i}`;
+    const inp=document.createElement("input"); inp.type="radio"; inp.name=name; inp.value=o.v; inp.id=id; if(i===0) inp.checked=true;
+    const lab=document.createElement("label"); lab.htmlFor=id; lab.textContent=o.v;
+    box.append(inp,lab);
+  });
+}
+fillSeg($("seg-kargo"),"kargo",KARGO); fillSeg($("seg-video"),"video",VIDEO); fillSeg($("seg-duzenli"),"duzenli",DUZENLI);
+
+// ---------- render ----------
+const STATS = [
+  {k:"all", t:"Toplam influencer", f:()=>true},
+  {k:"bekleyen", t:"Gönderilmeyi bekleyen", f:r=>["Gönderilmedi","Hazırlanıyor"].includes(find(KARGO,r.kargo).v)},
+  {k:"yolda", t:"Kargoda", f:r=>r.kargo==="Yolda"},
+  {k:"videoBek", t:"Video bekleniyor", f:r=>r.kargo==="Teslim edildi" && ["Video çekilmedi","Çekilecek"].includes(find(VIDEO,r.video).v)},
+  {k:"duzenli", t:"Düzenli çalışılan", f:r=>r.duzenli==="Evet, düzenli"},
+];
+function renderSummary(){
+  const box=$("summary"); box.innerHTML="";
+  const active = rows.filter(r=>!r.arsiv);
+  STATS.forEach(s=>{
+    const b=document.createElement("button"); b.type="button";
+    b.className="stat"+((statFilter===s.k||(!statFilter&&s.k==="all"))?" on":"");
+    const sp=document.createElement("span"); sp.textContent=s.t;
+    const n=document.createElement("b"); n.textContent=active.filter(s.f).length;
+    b.append(sp,n);
+    b.onclick=()=>{ statFilter=(s.k==="all"||statFilter===s.k)?null:s.k; render(); };
+    box.append(b);
+  });
+}
+const norm = s => (s||"").toString().toLocaleLowerCase("tr");
+function filtered(){
+  const q=norm($("q").value).trim();
+  const fk=$("fKargo").value, fv=$("fVideo").value, fd=$("fDuzenli").value, fa=$("fArsiv").checked;
+  const sf=STATS.find(s=>s.k===statFilter);
+  return rows.filter(r=>{
+    if(!!r.arsiv!==fa) return false;
+    if(sf && !sf.f(r)) return false;
+    if(fk && find(KARGO,r.kargo).v!==fk) return false;
+    if(fv && find(VIDEO,r.video).v!==fv) return false;
+    if(fd && find(DUZENLI,r.duzenli).v!==fd) return false;
+    if(q && !norm([r.ad,r.soyad,r.telefon,r.instagram,r.adres,r.urunler,r.notlar,r.takip].join(" ")).includes(q)) return false;
+    return true;
+  });
+}
+function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+function statusSelect(r, field, list){
+  const cur=find(list,r[field]);
+  const s=document.createElement("select"); s.className="pill "+cur.c; s.setAttribute("aria-label",field);
+  list.forEach(o=>s.append(new Option(o.v,o.v))); s.value=cur.v;
+  s.onchange=async ()=>{
+    const v=s.value; s.disabled=true;
+    try{ await apiSave({id:r.id,[field]:v}, "durum: "+field); toast("Güncellendi"); }
+    catch(e){ s.value=cur.v; s.disabled=false; toast(errText(e)); }
+  };
+  return s;
+}
+function phoneCell(r){
+  const d=el("div","mono");
+  if(!r.telefon){ d.textContent="—"; return d; }
+  d.append(document.createTextNode(r.telefon));
+  const a=el("a","copy","ara"); a.href="tel:"+String(r.telefon).replace(/\s/g,""); d.append(a);
+  return d;
+}
+function bodyStats(r){
+  const d=el("div","body-stats");
+  if(r.boy) d.append(el("span",null,r.boy+" cm"));
+  if(r.kilo) d.append(el("span",null,r.kilo+" kg"));
+  if(r.beden) d.append(el("span",null,r.beden));
+  if(!d.children.length) d.append(el("span",null,"—"));
+  return d;
+}
+function render(){
+  renderSummary();
+  const list=filtered();
+  $("count").textContent = rows.length ? `${list.length} / ${rows.length} kayıt` : "";
+  const tb=$("tbody"); tb.innerHTML=""; const cards=$("cards"); cards.innerHTML=""; const empty=$("emptyT");
+  if(!list.length){
+    empty.hidden=false; empty.innerHTML="";
+    empty.append(el("h2",null, rows.length?"Bu filtreye uyan kayıt yok":"Henüz influencer eklenmedi"),
+      el("p",null, rows.length?"Aramayı veya filtreleri temizleyin.":"“+ Yeni influencer” ile ilk kişiyi ekleyin. Kayıtlar Wes Google E-Tablosuna yazılır."));
+    const ec=empty.cloneNode(true); ec.className="card empty"; cards.append(ec);
+    return;
+  }
+  empty.hidden=true;
+  list.forEach(r=>{
+    const fullName=[r.ad,r.soyad].filter(Boolean).join(" ")||"(isimsiz)";
+    const tr=document.createElement("tr");
+    const c1=el("td"); c1.append(el("div","name",fullName)); if(r.instagram) c1.append(el("div","sub",r.instagram));
+    const c2=el("td"); c2.append(phoneCell(r));
+    const c3=el("td"); c3.append(el("div","addr",r.adres||"—"));
+    const c4=el("td"); c4.append(bodyStats(r));
+    const c5=el("td"); c5.append(el("div","prod",r.urunler||"—"));
+    const c6=el("td"); const st=el("div","stack"); st.append(statusSelect(r,"kargo",KARGO)); if(r.takip||r.firma) st.append(el("div","sub mono",[r.firma,r.takip].filter(Boolean).join(" · "))); c6.append(st);
+    const c7=el("td"); c7.append(statusSelect(r,"video",VIDEO));
+    const c8=el("td"); c8.append(statusSelect(r,"duzenli",DUZENLI));
+    const c9=el("td"); const eb=el("button","rowbtn","Düzenle"); eb.type="button"; eb.onclick=()=>openSheet(r); c9.append(eb);
+    tr.append(c1,c2,c3,c4,c5,c6,c7,c8,c9); tb.append(tr);
+
+    const card=el("div","card"); const top=el("div","row");
+    const nm=el("div"); nm.append(el("div","name",fullName)); if(r.instagram) nm.append(el("div","sub",r.instagram));
+    const eb2=el("button","rowbtn","Düzenle"); eb2.type="button"; eb2.onclick=()=>openSheet(r);
+    top.append(nm,eb2);
+    const pills=el("div","body-stats"); pills.style.gap="8px";
+    pills.append(statusSelect(r,"kargo",KARGO), statusSelect(r,"video",VIDEO), statusSelect(r,"duzenli",DUZENLI));
+    const dl=document.createElement("dl");
+    const add=(k,v)=>{ if(v==null||v==="") return; dl.append(el("dt",null,k)); const dd=el("dd"); v instanceof Node?dd.append(v):dd.textContent=v; dl.append(dd); };
+    add("Telefon", r.telefon?phoneCell(r):"");
+    add("Ölçüler", [r.boy&&r.boy+" cm", r.kilo&&r.kilo+" kg", r.beden].filter(Boolean).join(" · "));
+    add("Ürünler", r.urunler); add("Adres", r.adres); add("Kargo", [r.firma,r.takip].filter(Boolean).join(" · "));
+    card.append(top,pills,dl); cards.append(card);
+  });
+}
+["q","fKargo","fVideo","fDuzenli","fArsiv"].forEach(id=>$(id).addEventListener("input",render));
+
+// ---------- sheet ----------
+const form=$("form");
+function setRadio(name,v){ const i=[...form.querySelectorAll(`input[name="${name}"]`)].find(x=>x.value===v); if(i) i.checked=true; }
+function openSheet(r){
+  editingId = r ? r.id : null;
+  $("sheetTitle").textContent = r ? ([r.ad,r.soyad].filter(Boolean).join(" ")||"Kayıt") : "Yeni influencer";
+  form.reset();
+  TEXT_FIELDS.forEach(k=>{ form.elements[k].value = r ? (r[k]??"") : ""; });
+  setRadio("kargo", find(KARGO,r?.kargo).v); setRadio("video", find(VIDEO,r?.video).v); setRadio("duzenli", find(DUZENLI,r?.duzenli).v);
+  $("arcBtn").hidden = !r; $("arcBtn").textContent = r?.arsiv ? "Arşivden çıkar" : "Arşivle";
+  $("formErr").hidden=true;
+  $("scrim").hidden=false; $("sheet").hidden=false;
+  if(!r) setTimeout(()=>$("i-ad").focus(),30);
+}
+function closeSheet(){ $("scrim").hidden=true; $("sheet").hidden=true; editingId=null; }
+$("addBtn").onclick=()=>openSheet(null);
+$("closeBtn").onclick=closeSheet; $("cancelBtn").onclick=closeSheet; $("scrim").onclick=closeSheet;
+$("refreshBtn").onclick=()=>load(false);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("sheet").hidden) closeSheet(); });
+
+form.addEventListener("submit", async e=>{
+  e.preventDefault();
+  const item={};
+  TEXT_FIELDS.forEach(k=>item[k]=(form.elements[k].value||"").trim());
+  item.kargo=form.querySelector('input[name="kargo"]:checked').value;
+  item.video=form.querySelector('input[name="video"]:checked').value;
+  item.duzenli=form.querySelector('input[name="duzenli"]:checked').value;
+  if(!item.ad){ showErr("Ad alanı zorunlu."); form.elements.ad.focus(); return; }
+  if(editingId) item.id=editingId;
+  $("saveBtn").disabled=true; $("saveBtn").textContent="Kaydediliyor…";
+  try{ await apiSave(item, editingId?"duzenlendi":"eklendi"); toast(editingId?"Kaydedildi":"Eklendi"); closeSheet(); }
+  catch(err){ showErr(errText(err)); }
+  finally{ $("saveBtn").disabled=false; $("saveBtn").textContent="Kaydet"; }
+});
+// Kayıtlar hiç silinmez: "Arşivle" sadece ana listeden kaldırır.
+$("arcBtn").onclick=async ()=>{
+  const r=rows.find(x=>x.id===editingId); if(!r) return;
+  try{ await apiSave({id:r.id, arsiv:!r.arsiv}, r.arsiv?"arşivden çıkarıldı":"arşivlendi"); toast(r.arsiv?"Arşivden çıkarıldı":"Arşive taşındı"); closeSheet(); }
+  catch(err){ showErr(errText(err)); }
+};
+function showErr(m){ $("formErr").textContent=m; $("formErr").hidden=false; }
+function errText(e){
+  if(e?.message==="sifre") return "Şifre geçersiz. Tekrar giriş yapın.";
+  if(e?.message==="bulunamadi") return "Bu kayıt tabloda bulunamadı. “Yenile”ye basın.";
+  return "Kaydedilemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.";
+}
+let toastT=null;
+function toast(m){ const t=$("toast"); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2200); }
+
+// ---------- boot ----------
+if(!API){
+  $("gate").hidden=false; $("gatePass").disabled=true; $("gateBtn").disabled=true;
+  $("gateErr").hidden=false; $("gateErr").textContent="Sistem kurulumu tamamlanmadı: Google E-Tablo bağlantısı eklenmemiş.";
+}else{
+  key=getKey();
+  if(!key){ $("gate").hidden=false; }
+  else{ $("app").hidden=false; render(); load(false); }
+  // Diğer ekip üyelerinin girdiklerini görmek için: sekmeye dönünce ve dakikada bir yenile
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden && key && $("sheet").hidden) load(true); });
+  setInterval(()=>{ if(!document.hidden && key && $("sheet").hidden) load(true); }, 60000);
+}
+</script>
+</body>
+</html>
