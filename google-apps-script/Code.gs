@@ -14,10 +14,20 @@ const SET_NAME = 'Ayarlar';
 const DEFAULT_PASSWORD = 'atewes4465';
 
 const FIELDS = ['id', 'ad', 'soyad', 'telefon', 'instagram', 'adres', 'boy', 'kilo', 'beden', 'urunler',
-  'kargo', 'firma', 'takip', 'video', 'duzenli', 'notlar', 'arsiv', 'createdAt', 'updatedAt'];
+  'kargo', 'firma', 'takip', 'video', 'duzenli', 'notlar', 'arsiv', 'createdAt', 'updatedAt', 'eposta'];
 const HEADERS = ['ID', 'Ad', 'Soyad', 'Telefon', 'Instagram', 'Adres', 'Boy (cm)', 'Kilo (kg)', 'Beden', 'Gönderilen ürünler',
-  'Kargo durumu', 'Kargo firması', 'Takip no', 'Video durumu', 'Düzenli çalışma', 'Notlar', 'Arşivde', 'Eklenme', 'Son güncelleme'];
+  'Kargo durumu', 'Kargo firması', 'Takip no', 'Video durumu', 'Düzenli çalışma', 'Notlar', 'Arşivde', 'Eklenme', 'Son güncelleme', 'E-posta'];
 const EDITABLE = FIELDS.filter(f => !['id', 'createdAt', 'updatedAt'].includes(f));
+// Not: yeni alanlar her zaman sona eklenir, böylece mevcut sütunlar kaymaz.
+
+/** Eksik başlıkları (ör. sonradan eklenen E-posta sütunu) tabloya yazar. */
+function ensureHeaders_(sh) {
+  if (sh.getMaxColumns() < HEADERS.length) sh.insertColumnsAfter(sh.getMaxColumns(), HEADERS.length - sh.getMaxColumns());
+  const cur = sh.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+  HEADERS.forEach((h, i) => {
+    if (!cur[i]) sh.getRange(1, i + 1).setValue(h).setFontWeight('bold').setBackground('#dfeae5');
+  });
+}
 
 /** Tabloyu ilk kez hazırlar. Apps Script'te bir kez "Çalıştır" ile çalıştırın. */
 function kurulum() {
@@ -78,6 +88,7 @@ function doGet(e) {
   if (String(p.key || '').trim() !== password_()) return json_({ ok: false, error: 'sifre' });
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
   if (!sh) return json_({ ok: false, error: 'kurulum' });
+  ensureHeaders_(sh);
   return json_({ ok: true, items: readAll_(sh) });
 }
 
@@ -93,6 +104,7 @@ function doPost(e) {
     const sh = ss.getSheetByName(SHEET_NAME);
     const hist = ss.getSheetByName(HIST_NAME);
     if (!sh) return json_({ ok: false, error: 'kurulum' });
+    ensureHeaders_(sh);
     const item = body.item || {};
     const now = new Date();
 
@@ -129,6 +141,7 @@ function doPost(e) {
     if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), 100);
     sh.getRange(r, 1, 1, 17).setNumberFormat('@');
     sh.getRange(r, 18, 1, 2).setNumberFormat('dd.mm.yyyy hh:mm');
+    sh.getRange(r, 20, 1, 1).setNumberFormat('@');
     sh.getRange(r, 1, 1, FIELDS.length).setValues([row]);
     hist.appendRow([now, row[0], 'eklendi', '']);
     return json_({ ok: true, item: rowToObj_(row) });
