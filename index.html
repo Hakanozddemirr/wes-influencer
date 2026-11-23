@@ -104,7 +104,9 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 
 .rowbtn{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:6px 10px;font-size:13px;font-weight:600;cursor:pointer}
 .rowbtn:hover{background:var(--surface-2)}
-.copy{border:none;background:none;padding:0 0 0 4px;cursor:pointer;color:var(--muted);font-size:12px;text-decoration:underline}
+.copy{white-space:nowrap;border:none;background:none;padding:0 0 0 6px;cursor:pointer;color:var(--muted);font-size:12px;text-decoration:underline}
+.mail{overflow-wrap:anywhere;max-width:240px}
+.tablebox .mail{white-space:nowrap;max-width:none}
 
 .empty{padding:48px 20px;text-align:center;color:var(--muted)}
 .empty h2{font-family:var(--f-display);color:var(--fg);font-size:20px;margin:0 0 6px}
@@ -196,7 +198,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
   <div class="summary" id="summary"></div>
 
   <div class="filters">
-    <input type="search" id="q" placeholder="İsim, telefon, ürün veya adres ara…" aria-label="Ara">
+    <input type="search" id="q" placeholder="İsim, telefon, e-posta, ürün veya adres ara…" aria-label="Ara">
     <select id="fKargo" aria-label="Kargo durumu filtresi"></select>
     <select id="fVideo" aria-label="Video durumu filtresi"></select>
     <select id="fDuzenli" aria-label="Düzenli çalışma filtresi"></select>
@@ -209,7 +211,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
   <div class="tablebox">
     <table>
       <thead><tr>
-        <th>Influencer</th><th>Telefon</th><th>Adres</th><th>Boy / Kilo / Beden</th><th>Gönderilen ürünler</th><th>Kargo</th><th>Video</th><th>Düzenli</th><th></th>
+        <th>Influencer</th><th>Telefon / E-posta</th><th>Adres</th><th>Boy / Kilo / Beden</th><th>Gönderilen ürünler</th><th>Kargo</th><th>Video</th><th>Düzenli</th><th></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -230,6 +232,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
         <div class="f"><label for="i-soyad">Soyad</label><input id="i-soyad" name="soyad" autocomplete="off"></div>
         <div class="f"><label for="i-telefon">Telefon</label><input id="i-telefon" name="telefon" type="tel" placeholder="05xx xxx xx xx" autocomplete="off"></div>
         <div class="f"><label for="i-instagram">Instagram / hesap</label><input id="i-instagram" name="instagram" placeholder="@kullaniciadi" autocomplete="off"></div>
+        <div class="f full"><label for="i-eposta">E-posta</label><input id="i-eposta" name="eposta" type="email" inputmode="email" placeholder="ornek@mail.com" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
         <div class="f full"><label for="i-adres">Adres</label><textarea id="i-adres" name="adres" placeholder="Mahalle, sokak, no, ilçe / il"></textarea></div>
       </fieldset>
     </div>
@@ -285,7 +288,7 @@ const DUZENLI = [
   {v:"Değerlendiriliyor", c:"t-grey"}, {v:"Evet, düzenli", c:"t-green"}, {v:"Hayır", c:"t-red"},
 ];
 const BEDEN = ["","XS","S","M","L","XL","XXL","3XL","34","36","38","40","42","44","46"];
-const TEXT_FIELDS = ["ad","soyad","telefon","instagram","adres","boy","kilo","beden","urunler","firma","takip","notlar"];
+const TEXT_FIELDS = ["ad","soyad","telefon","eposta","instagram","adres","boy","kilo","beden","urunler","firma","takip","notlar"];
 
 const $ = id => document.getElementById(id);
 const find = (list,v) => list.find(o=>o.v===v) || list[0];
@@ -403,7 +406,7 @@ function filtered(){
     if(fk && find(KARGO,r.kargo).v!==fk) return false;
     if(fv && find(VIDEO,r.video).v!==fv) return false;
     if(fd && find(DUZENLI,r.duzenli).v!==fd) return false;
-    if(q && !norm([r.ad,r.soyad,r.telefon,r.instagram,r.adres,r.urunler,r.notlar,r.takip].join(" ")).includes(q)) return false;
+    if(q && !norm([r.ad,r.soyad,r.telefon,r.eposta,r.instagram,r.adres,r.urunler,r.notlar,r.takip].join(" ")).includes(q)) return false;
     return true;
   });
 }
@@ -426,6 +429,17 @@ function phoneCell(r){
   const a=el("a","copy","ara"); a.href="tel:"+String(r.telefon).replace(/\s/g,""); d.append(a);
   return d;
 }
+function mailCell(r){
+  const d=el("div","mono mail");
+  d.append(el("div",null,r.eposta));
+  const links=el("div"); d.append(links);
+  const a=el("a","copy","mail at"); a.style.paddingLeft="0"; a.href="mailto:"+String(r.eposta).trim(); links.append(a);
+  const c=el("button","copy","kopyala"); c.type="button";
+  c.onclick=async()=>{ try{ await navigator.clipboard.writeText(String(r.eposta).trim()); toast("E-posta kopyalandı"); }catch(e){ toast("Kopyalanamadı"); } };
+  links.append(c);
+  return d;
+}
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function bodyStats(r){
   const d=el("div","body-stats");
   if(r.boy) d.append(el("span",null,r.boy+" cm"));
@@ -451,7 +465,7 @@ function render(){
     const fullName=[r.ad,r.soyad].filter(Boolean).join(" ")||"(isimsiz)";
     const tr=document.createElement("tr");
     const c1=el("td"); c1.append(el("div","name",fullName)); if(r.instagram) c1.append(el("div","sub",r.instagram));
-    const c2=el("td"); c2.append(phoneCell(r));
+    const c2=el("td"); const pc=el("div","stack"); if(r.telefon||!r.eposta) pc.append(phoneCell(r)); if(r.eposta) pc.append(mailCell(r)); c2.append(pc);
     const c3=el("td"); c3.append(el("div","addr",r.adres||"—"));
     const c4=el("td"); c4.append(bodyStats(r));
     const c5=el("td"); c5.append(el("div","prod",r.urunler||"—"));
@@ -469,7 +483,7 @@ function render(){
     pills.append(statusSelect(r,"kargo",KARGO), statusSelect(r,"video",VIDEO), statusSelect(r,"duzenli",DUZENLI));
     const dl=document.createElement("dl");
     const add=(k,v)=>{ if(v==null||v==="") return; dl.append(el("dt",null,k)); const dd=el("dd"); v instanceof Node?dd.append(v):dd.textContent=v; dl.append(dd); };
-    add("Telefon", r.telefon?phoneCell(r):"");
+    add("Telefon", r.telefon?phoneCell(r):""); add("E-posta", r.eposta?mailCell(r):"");
     add("Ölçüler", [r.boy&&r.boy+" cm", r.kilo&&r.kilo+" kg", r.beden].filter(Boolean).join(" · "));
     add("Ürünler", r.urunler); add("Adres", r.adres); add("Kargo", [r.firma,r.takip].filter(Boolean).join(" · "));
     card.append(top,pills,dl); cards.append(card);
@@ -505,9 +519,15 @@ form.addEventListener("submit", async e=>{
   item.video=form.querySelector('input[name="video"]:checked').value;
   item.duzenli=form.querySelector('input[name="duzenli"]:checked').value;
   if(!item.ad){ showErr("Ad alanı zorunlu."); form.elements.ad.focus(); return; }
+  if(item.eposta && !EMAIL_RE.test(item.eposta)){ showErr("E-posta adresi geçersiz görünüyor."); form.elements.eposta.focus(); return; }
   if(editingId) item.id=editingId;
   $("saveBtn").disabled=true; $("saveBtn").textContent="Kaydediliyor…";
-  try{ await apiSave(item, editingId?"duzenlendi":"eklendi"); toast(editingId?"Kaydedildi":"Eklendi"); closeSheet(); }
+  try{
+    const saved = await apiSave(item, editingId?"duzenlendi":"eklendi");
+    // Apps Script kodu henüz güncellenmediyse e-posta sütunu yoktur; kullanıcıyı uyar.
+    if(item.eposta && !Object.prototype.hasOwnProperty.call(saved,"eposta")){ showErr("Kayıt kaydedildi ama e-posta tabloya yazılmadı: Google Apps Script kodunun güncellenmesi gerekiyor."); return; }
+    toast(editingId?"Kaydedildi":"Eklendi"); closeSheet();
+  }
   catch(err){ showErr(errText(err)); }
   finally{ $("saveBtn").disabled=false; $("saveBtn").textContent="Kaydet"; }
 });
